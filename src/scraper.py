@@ -1,12 +1,10 @@
 import distutils.dir_util
 import json
 import os
-from collections import ChainMap
 from datetime import date
 from decimal import Decimal
 
 from utils import DecimalEncoder, get_soup, normalize
-
 
 MONTHS = {
     "A": "01",
@@ -25,7 +23,7 @@ MONTHS = {
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 SOURCEJSON_URL = os.path.join(BASE_DIR, "source.json")
-YEAR_INIT = 2014
+YEAR_INIT = 2022
 CURRENT_YEAR = date.today().strftime("%Y")
 CURRENT_MONTH = date.today().strftime("%m")
 BASE_URL = "https://www.set.gov.py"
@@ -51,7 +49,7 @@ def get_years():
     if soup:
         for category in soup.select(".SubCategory"):
             year = int(category["title"])
-            if year >= YEAR_INIT and year >= get_last_year_processed():
+            if year >= YEAR_INIT and year >= get_last_year_processed() and year <= YEAR_INIT:
                 link = category["href"]
                 years[category["title"]] = {"link": link, "months": get_months(link)}
     return years
@@ -71,19 +69,22 @@ def get_rates(url, year="2022", month="03"):
     soup = get_soup(url)
     date = None
     if soup:
-        table = soup.select(".webContentInformation table")[3]
-        rows = table.select("tbody > tr")
+        table = soup.select(".webContentInformation table[border='1']")[0]
+        tbody = table.select("tbody")[0]
+        rows = tbody.select("tr")
         for j, row in enumerate(rows):
             if j > 1:
                 cols = row.select("td")
+                # Removing extra columns without data:
+                # like https://www.set.gov.py/portal/PARAGUAY-SET/detail?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/cotizaciones-historicos/2016/h-mes-de-agosto&content-id=/repository/collaboration/sites/PARAGUAY-SET/documents/informes-periodicos/cotizaciones/2016/H_-_Mes_de_Agosto
+                cols = [c for c in cols if len(c.getText().strip()) > 1]
                 for k, col in enumerate(cols):
+                    text = col.getText()
                     if k in scheme["day"]["cols"]:
-                        date = f"{year}-{month}-{'{:0>2}'.format(col.text)}"
+                        date = f"{year}-{month}-{'{:0>2}'.format(text.strip())}"
                     else:
-                        currency = [x for x in scheme.keys() if k in scheme[x]["cols"]][
-                            0
-                        ]
-                        value = Decimal(normalize(col.text))
+                        currency = [x for x in scheme.keys() if k in scheme[x]["cols"]][0]
+                        value = Decimal(normalize(text.strip()))
                         rate = rates.get(date, None)
                         if rate is None:
                             rates[date] = {
@@ -111,7 +112,15 @@ def get_sourcejson():
         with open(SOURCEJSON_URL, "r") as f:
             return json.loads(f.read())
     except FileNotFoundError:
-        return None
+        return {}
+
+
+def get_yearjson(url):
+    try:
+        with open(url, "r") as f:
+            return json.loads(f.read())
+    except FileNotFoundError:
+        return {}
 
 
 def get_last_year_processed():
@@ -140,24 +149,29 @@ def save(rates, year, month):
     year_path = os.path.join(DATA_DIR, year)
     month_path = os.path.join(year_path, month)
     for date in rates.keys():
-        day_path = os.path.join(month_path, date.split('-')[2])
+        day_path = os.path.join(month_path, date.split("-")[2])
         distutils.dir_util.mkpath(day_path)
         d = {date: rates[date]}
         with open(os.path.join(day_path, "rates.json"), "w") as f:
             f.write(json.dumps(d, cls=DecimalEncoder))
 
+    with open(os.path.join(month_path, "rates.json"), "w") as f:
+        f.write(json.dumps(rates, cls=DecimalEncoder))
+
+    yearjson = get_yearjson(os.path.join(year_path, "rates.json"))
+    yearjson = dict(yearjson, **rates)
+    with open(os.path.join(year_path, "rates.json"), "w") as f:
+        f.write(json.dumps(yearjson, cls=DecimalEncoder))
+
 
 def run():
     new_source = get_years()
     current_source = get_sourcejson()
-    if current_source:
-        for year in new_source.keys():
-            for month in new_source[year]["months"]:
-                current_source[year]["months"][month] = new_source[year]["months"][
-                    month
-                ]
-                rates = get_rates(
-                    new_source[year]["months"][month]["link"], year, month
-                )
-                save(rates, year, month)
+    for year in new_source.keys():
+        if current_source.get(year, None) is None:
+            current_source[year] = {"months": {"01": {"link": None}}}
+        for month in new_source[year]["months"]:
+            current_source[year]["months"][month] = new_source[year]["months"][month]
+            rates = get_rates(new_source[year]["months"][month]["link"], year, month)
+            save(rates, year, month)
     update_sourcejson(current_source)
