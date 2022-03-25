@@ -77,7 +77,7 @@ def get_rates(url, year="2022", month="03"):
                 cols = row.select("td")
                 # Removing extra columns without data:
                 # like https://www.set.gov.py/portal/PARAGUAY-SET/detail?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/cotizaciones-historicos/2016/h-mes-de-agosto&content-id=/repository/collaboration/sites/PARAGUAY-SET/documents/informes-periodicos/cotizaciones/2016/H_-_Mes_de_Agosto
-                cols = [c for c in cols if len(c.getText().strip()) > 1]
+                cols = [c for c in cols if len(c.getText().strip()) > 0]
                 for k, col in enumerate(cols):
                     text = col.getText()
                     if k in scheme["day"]["cols"]:

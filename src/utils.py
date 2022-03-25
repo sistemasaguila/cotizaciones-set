@@ -58,7 +58,11 @@ def normalize(number):
         normalized = normalized.replace('T', '').replace('D', '.')
     normalized = re.findall('\d*\.?\d+', normalized)
     if normalized:
-        return normalized[0]
+        normalized = normalized[0]
+        if len(normalized.split('.')) > 1:
+            if len(normalized.split('.')[1:][0]) > 2: 
+                normalized = normalized.replace('.', '')
+        return normalized
     else:
         return '0'
     
