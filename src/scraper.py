@@ -49,7 +49,7 @@ def get_years():
     if soup:
         for category in soup.select(".SubCategory"):
             year = int(category["title"])
-            if year >= YEAR_INIT and year >= get_last_year_processed() and year <= YEAR_INIT:
+            if year >= YEAR_INIT and year >= get_last_year_processed():
                 link = category["href"]
                 years[category["title"]] = {"link": link, "months": get_months(link)}
     return years
