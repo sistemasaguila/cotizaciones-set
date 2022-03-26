@@ -30,7 +30,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
       "purchase": 1431.93,
       "sale": 1434.04
     },
-    ...
+    /*...*/
   }
 }
 ```
@@ -52,14 +52,14 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
       "purchase": 1350.91,
       "sale": 1352.06
     },
-    ...
+    /*...*/
   },
   "2022-03-02": {
     "usd": {
       "purchase": 6953.07,
       "sale": 6974.68
     },
-    ...
+    /*...*/
   }
 }
 ```
@@ -81,7 +81,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
       "purchase": 1227.68,
       "sale": 1230.82
     },
-    ...
+    /*...*/
   },
   "2022-01-02": {
     "usd": {
@@ -92,7 +92,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
       "purchase": 1227.68,
       "sale": 1230.82
     },
-    ...
+    /*...*/
   }
 }
 ```
