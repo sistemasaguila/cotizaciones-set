@@ -19,7 +19,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
 
 #### Respuesta
 
-```json
+```javascript
 {
   "2022-03-23": {
     "usd": {
@@ -41,7 +41,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
 
 #### Respuesta
 
-```json
+```javascript
 {
   "2022-03-01": {
     "usd": {
@@ -70,7 +70,7 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
 
 #### Respuesta
 
-```json
+```javascript
 {
   "2022-01-01": {
     "usd": {
