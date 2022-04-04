@@ -146,14 +146,15 @@ def get_last_month_processed():
 
 
 def save(rates, year, month):
+    latest = None
     year_path = os.path.join(DATA_DIR, year)
     month_path = os.path.join(year_path, month)
     for date in rates.keys():
         day_path = os.path.join(month_path, date.split("-")[2])
         distutils.dir_util.mkpath(day_path)
-        d = {date: rates[date]}
+        latest = {date: rates[date]}
         with open(os.path.join(day_path, "rates.json"), "w") as f:
-            f.write(json.dumps(d, cls=DecimalEncoder))
+            f.write(json.dumps(latest, cls=DecimalEncoder))
 
     with open(os.path.join(month_path, "rates.json"), "w") as f:
         f.write(json.dumps(rates, cls=DecimalEncoder))
@@ -162,6 +163,10 @@ def save(rates, year, month):
     yearjson = dict(yearjson, **rates)
     with open(os.path.join(year_path, "rates.json"), "w") as f:
         f.write(json.dumps(yearjson, cls=DecimalEncoder))
+        
+    if latest:
+        with open(os.path.join(DATA_DIR, "latest.json"), "w") as f:
+            f.write(json.dumps(latest, cls=DecimalEncoder))
 
 
 def run():
