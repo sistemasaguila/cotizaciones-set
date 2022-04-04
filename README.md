@@ -13,6 +13,30 @@ https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/{year}/{mo
 
 ## Uso
 
+### Recuperar la cotización más reciente disponible
+
+Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/latest.json](https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/latest.json "https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/latest.json")
+
+
+#### Respuesta
+
+```javascript
+{
+  "2022-03-23": {
+    "usd": {
+      "purchase": 6957.05,
+      "sale": 6965.87
+    },
+    "brl": {
+      "purchase": 1431.93,
+      "sale": 1434.04
+    },
+    /*...*/
+  }
+}
+```
+
+
 ### Recuperar cotizaciones de una fecha
 
 Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022/03/23/rates.json](https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022/03/23/rates.json "https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022/03/23/rates.json")
