@@ -52,6 +52,10 @@ def get_sections():
                     year_str = str(year)
                     sections[year_str] = sections.get(year_str, {})
                     sections[year_str][month] = section.select("table")
+
+        for year in sections.keys():
+            sections[year] = dict(sorted(sections[year].items(), key=lambda x: x[0]))                    
+
     return sections
 
 
