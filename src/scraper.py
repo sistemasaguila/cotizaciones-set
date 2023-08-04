@@ -1,3 +1,5 @@
+import re
+
 import distutils.dir_util
 import json
 import os
@@ -6,20 +8,23 @@ from decimal import Decimal
 
 from utils import DecimalEncoder, get_soup, normalize
 
+
 MONTHS = {
-    "A": "01",
-    "B": "02",
-    "C": "03",
-    "D": "04",
-    "E": "05",
-    "F": "06",
-    "G": "07",
-    "H": "08",
-    "I": "09",
-    "J": "10",
-    "K": "11",
-    "L": "12",
+    "Enero": "01",
+    "Febrero": "02",
+    "Marzo": "03",
+    "Abril": "04",
+    "Mayo": "05",
+    "Junio": "06",
+    "Julio": "07",
+    "Agosto": "08",
+    "Septiembre": "09", # 🤦
+    "Setiembre": "09",  # 🤦
+    "Octubre": "10",
+    "Noviembre": "11",
+    "Diciembre": "12",
 }
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 SOURCEJSON_URL = os.path.join(BASE_DIR, "source.json")
@@ -27,35 +32,30 @@ YEAR_INIT = 2014
 CURRENT_YEAR = date.today().strftime("%Y")
 CURRENT_MONTH = date.today().strftime("%m")
 BASE_URL = "https://www.set.gov.py"
-URL = f"{BASE_URL}/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/cotizaciones-historicos"
+URL = f"{BASE_URL}/web/portal-institucional/cotizaciones"
 
 
-def get_months(url):
-    months = {}
-    soup = get_soup(url)
-    if soup:
-        for category in soup.select(".SubCategory"):
-            path = get_soup(category["href"]).select(".uiContentBox a")[0]["href"]
-            title = category["title"]
-            month = MONTHS[title.split("-")[0].strip()]
-            if int(month) >= get_last_month_processed():
-                months[month] = {"link": f"{BASE_URL}{path}"}
-    return months
-
-
-def get_years():
-    years = {}
+def get_sections():
+    sections = {}
     soup = get_soup(URL)
     if soup:
-        for category in soup.select(".SubCategory"):
-            year = int(category["title"])
-            if year >= YEAR_INIT and year >= get_last_year_processed():
-                link = category["href"]
-                years[category["title"]] = {"link": link, "months": get_months(link)}
-    return years
+        for section in soup.select("[data-analytics-asset-title]"):
+            pattern = r"(\b[A-Za-z]+)\s+(\d{4})\b"
+            section_text = section.attrs.get("data-analytics-asset-title", "")
+            result = re.search(pattern, section_text)
+            if result:
+                month_str = result.group(1)
+                year = int(result.group(2))
+                month = MONTHS[month_str]
+                
+                if year >= YEAR_INIT and year >= get_last_year_processed():
+                    year_str = str(year)
+                    sections[year_str] = sections.get(year_str, {})
+                    sections[year_str][month] = section.select("table")
+    return sections
 
 
-def get_rates(url, year="2022", month="03"):
+def get_rates(soup, year="2022", month="03"):
     rates = {}
     scheme = {
         "day": {"purchase": None, "sale": None, "cols": (0,)},
@@ -66,39 +66,37 @@ def get_rates(url, year="2022", month="03"):
         "eur": {"purchase": 9, "sale": 10, "cols": (9, 10)},
         "gbp": {"purchase": 11, "sale": 12, "cols": (11, 12)},
     }
-    soup = get_soup(url)
     date = None
     if soup:
-        table = soup.select(".webContentInformation table[border='1']")[0]
+        table = soup[0]
         tbody = table.select("tbody")[0]
         rows = tbody.select("tr")
-        for j, row in enumerate(rows):
-            if j > 1:
-                cols = row.select("td")
-                # Removing extra columns without data:
-                # like https://www.set.gov.py/portal/PARAGUAY-SET/detail?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/cotizaciones-historicos/2016/h-mes-de-agosto&content-id=/repository/collaboration/sites/PARAGUAY-SET/documents/informes-periodicos/cotizaciones/2016/H_-_Mes_de_Agosto
-                cols = [c for c in cols if len(c.getText().strip()) > 0]
-                for k, col in enumerate(cols):
-                    text = col.getText()
-                    if k in scheme["day"]["cols"]:
-                        date = f"{year}-{month}-{'{:0>2}'.format(text.strip())}"
-                    else:
-                        currency = [x for x in scheme.keys() if k in scheme[x]["cols"]][0]
-                        value = Decimal(normalize(text.strip()))
-                        rate = rates.get(date, None)
-                        if rate is None:
-                            rates[date] = {
-                                currency: {"purchase": Decimal(0), "sale": Decimal(0)}
-                            }
-                        if rates[date].get(currency, None) is None:
-                            rates[date][currency] = {
-                                "purchase": Decimal(0),
-                                "sale": Decimal(0),
-                            }
-                        if k == scheme[currency]["purchase"]:
-                            rates[date][currency]["purchase"] = value
-                        if k == scheme[currency]["sale"]:
-                            rates[date][currency]["sale"] = value
+        for row in rows:
+            cols = row.select("td")
+            # Removing extra columns without data:
+            # like https://www.set.gov.py/portal/PARAGUAY-SET/detail?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/cotizaciones-historicos/2016/h-mes-de-agosto&content-id=/repository/collaboration/sites/PARAGUAY-SET/documents/informes-periodicos/cotizaciones/2016/H_-_Mes_de_Agosto
+            cols = [c for c in cols if len(c.getText().strip()) > 0]
+            for k, col in enumerate(cols):
+                text = col.getText()
+                if k in scheme["day"]["cols"]:
+                    date = f"{year}-{month}-{'{:0>2}'.format(text.strip())}"
+                else:
+                    currency = [x for x in scheme.keys() if k in scheme[x]["cols"]][0]
+                    value = Decimal(normalize(text.strip()))
+                    rate = rates.get(date, None)
+                    if rate is None:
+                        rates[date] = {
+                            currency: {"purchase": Decimal(0), "sale": Decimal(0)}
+                        }
+                    if rates[date].get(currency, None) is None:
+                        rates[date][currency] = {
+                            "purchase": Decimal(0),
+                            "sale": Decimal(0),
+                        }
+                    if k == scheme[currency]["purchase"]:
+                        rates[date][currency]["purchase"] = value
+                    if k == scheme[currency]["sale"]:
+                        rates[date][currency]["sale"] = value
     return rates
 
 
@@ -170,13 +168,14 @@ def save(rates, year, month):
 
 
 def run():
-    new_source = get_years()
+    new_source = get_sections()
     current_source = get_sourcejson()
     for year in new_source.keys():
         if current_source.get(year, None) is None:
             current_source[year] = {"months": {"01": {"link": None}}}
-        for month in new_source[year]["months"]:
-            current_source[year]["months"][month] = new_source[year]["months"][month]
-            rates = get_rates(new_source[year]["months"][month]["link"], year, month)
+        for month in new_source[year].keys():
+            current_source[year]["months"][month] = {"link": URL}
+            rates = get_rates(new_source[year][month], year, month)
             save(rates, year, month)
+    
     update_sourcejson(current_source)
