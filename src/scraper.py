@@ -18,7 +18,7 @@ MONTHS = {
     "Junio": "06",
     "Julio": "07",
     "Agosto": "08",
-    "Septiembre": "09", # 🤦
+    "Septiembre": "09",  # 🤦
     "Setiembre": "09",  # 🤦
     "Octubre": "10",
     "Noviembre": "11",
@@ -39,6 +39,8 @@ def get_sections():
     sections = {}
     soup = get_soup(URL)
     if soup:
+        # List to store months to avoid duplicates
+        months_ctr = []
         for section in soup.select("[data-analytics-asset-title]"):
             pattern = r"(\b[A-Za-z]+)\s+(\d{4})\b"
             section_text = section.attrs.get("data-analytics-asset-title", "")
@@ -47,14 +49,19 @@ def get_sections():
                 month_str = result.group(1)
                 year = int(result.group(2))
                 month = MONTHS[month_str]
-                
-                if year >= YEAR_INIT and year >= get_last_year_processed():
+
+                if (
+                    year >= YEAR_INIT
+                    and year >= get_last_year_processed()
+                    and month not in months_ctr
+                ):
                     year_str = str(year)
                     sections[year_str] = sections.get(year_str, {})
                     sections[year_str][month] = section.select("table")
+                    months_ctr.append(month)
 
         for year in sections.keys():
-            sections[year] = dict(sorted(sections[year].items(), key=lambda x: x[0]))                    
+            sections[year] = dict(sorted(sections[year].items(), key=lambda x: x[0]))
 
     return sections
 
@@ -162,10 +169,10 @@ def save(rates, year, month):
         f.write(json.dumps(rates, cls=DecimalEncoder))
 
     yearjson = get_yearjson(os.path.join(year_path, "rates.json"))
-    yearjson = dict(yearjson, **rates)
+    yearjson = dict(sorted(dict(yearjson, **rates).items(), key=lambda x: x[0]))
     with open(os.path.join(year_path, "rates.json"), "w") as f:
         f.write(json.dumps(yearjson, cls=DecimalEncoder))
-        
+
     if latest:
         with open(os.path.join(DATA_DIR, "latest.json"), "w") as f:
             f.write(json.dumps(latest, cls=DecimalEncoder))
@@ -181,5 +188,5 @@ def run():
             current_source[year]["months"][month] = {"link": URL}
             rates = get_rates(new_source[year][month], year, month)
             save(rates, year, month)
-    
+
     update_sourcejson(current_source)
