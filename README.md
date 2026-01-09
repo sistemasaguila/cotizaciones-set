@@ -1,5 +1,5 @@
 # cotizaciones-set
-Api de cotizaciones basados en los datos publicados por la Subsecretaría de Estado de Tributación (SET)
+Api de cotizaciones basados en los datos publicados por la Dirección Nacional de Ingresos Tributarios (DNIT)
 
 [![](https://data.jsdelivr.com/v1/package/gh/sistemasaguila/cotizaciones-set/badge)](https://www.jsdelivr.com/package/gh/sistemasaguila/cotizaciones-set)
 [![Update rates](https://github.com/sistemasaguila/cotizaciones-set/actions/workflows/run.yml/badge.svg)](https://github.com/sistemasaguila/cotizaciones-set/actions/workflows/run.yml)
