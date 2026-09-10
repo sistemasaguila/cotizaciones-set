@@ -6,7 +6,7 @@
 #
 beautifulsoup4==4.10.0
     # via -r requirements.in
-certifi==2021.10.8
+certifi==2023.7.22
     # via requests
 charset-normalizer==2.0.12
     # via requests
@@ -20,13 +20,13 @@ pip-tools==6.5.1
     # via -r requirements.in
 requests==2.27.1
     # via -r requirements.in
-soupsieve==2.3.1
+soupsieve==2.8.4
     # via beautifulsoup4
 tomli==2.0.1
     # via pep517
-urllib3==1.26.9
+urllib3==2.6.3
     # via requests
-wheel==0.37.1
+wheel==0.38.1
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
