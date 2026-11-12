@@ -120,3 +120,19 @@ Url: [https://cdn.jsdelivr.net/gh/sistemasaguila/cotizaciones-set@main/data/2022
   }
 }
 ```
+
+## Desarrollo
+
+El proyecto usa [uv](https://docs.astral.sh/uv/) para gestionar Python y las dependencias.
+
+```bash
+# Instalar dependencias (crea .venv con la versión de .python-version)
+uv sync
+
+# Ejecutar el scraper
+uv run src/main.py
+
+# Agregar o actualizar dependencias
+uv add <paquete>
+uv lock --upgrade
+```

@@ -1,6 +1,5 @@
 import re
 
-import distutils.dir_util
 import json
 import os
 from datetime import date
@@ -160,7 +159,7 @@ def save(rates, year, month):
     month_path = os.path.join(year_path, month)
     for date in rates.keys():
         day_path = os.path.join(month_path, date.split("-")[2])
-        distutils.dir_util.mkpath(day_path)
+        os.makedirs(day_path, exist_ok=True)
         latest = {date: rates[date]}
         with open(os.path.join(day_path, "rates.json"), "w") as f:
             f.write(json.dumps(latest, cls=DecimalEncoder))

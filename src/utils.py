@@ -6,8 +6,6 @@ from decimal import Decimal
 import requests
 from bs4 import BeautifulSoup
 
-requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = "ALL:@SECLEVEL=1"
-
 
 def get_soup(url):
     print(f"Scraping: {url}")
@@ -56,7 +54,7 @@ def normalize(number):
     if decimal_str:
         normalized = normalized.replace(decimal_str, 'D')
         normalized = normalized.replace('T', '').replace('D', '.')
-    normalized = re.findall('\d*\.?\d+', normalized)
+    normalized = re.findall(r'\d*\.?\d+', normalized)
     if normalized:
         normalized = normalized[0]
         if len(normalized.split('.')) > 1:

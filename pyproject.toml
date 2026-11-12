@@ -1,0 +1,10 @@
+[project]
+name = "cotizaciones-set"
+version = "0.1.0"
+description = "Api de cotizaciones basados en los datos publicados por la DNIT"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "requests>=2.32",
+]
